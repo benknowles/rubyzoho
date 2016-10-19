@@ -46,7 +46,7 @@ module ZohoApiFieldUtils
     mod_name = ApiUtils.string_to_symbol(module_name)
     return @@module_fields[mod_name] unless @@module_fields[mod_name].nil?
     r = self.class.post(create_url(module_name, 'getFields'),
-                        :query => { :authtoken => @auth_token, :scope => 'crmapi' },
+                        :query => { :authtoken => @auth_token, :scope => 'recruitapi' },
                         :headers => { 'Content-length' => '0' })
     check_for_errors(r)
     update_module_fields(mod_name, module_name, r)

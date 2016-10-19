@@ -13,7 +13,6 @@ require 'zoho_api_finders'
 
 module ZohoApi
 
-
   include ApiUtils
 
   class Crm
@@ -22,13 +21,14 @@ module ZohoApi
     include ZohoApiFieldUtils
     include ZohoApiFinders
 
-    #debug_output $stderr
+    debug_output $stderr
 
     attr_reader :auth_token, :module_fields
 
     def initialize(auth_token, modules, ignore_fields, fields = nil)
       @auth_token = auth_token
-      @modules = %w(Accounts Contacts Events Leads Potentials Tasks Users).concat(modules).uniq
+      # XXX: line below can just be modules concat "Users" then uniq... no need to redefine here
+      @modules = %w(Candidates Clients JobOpenings Events Interviews Users).concat(modules).uniq
       @module_fields = fields.nil? ? reflect_module_fields : fields
       @ignore_fields = ignore_fields
     end
@@ -40,7 +40,7 @@ module ZohoApi
       fields_values_hash.each_pair { |k, v| add_field(row, k, v, module_name) }
       r = self.class.post(create_url(module_name, 'insertRecords'),
                           :query => {:newFormat => 1, :authtoken => @auth_token,
-                                     :scope => 'crmapi', :xmlData => x, :wfTrigger => 'true'},
+                                     :scope => 'recruitapi', :xmlData => x, :wfTrigger => 'true'},
                           :headers => {'Content-length' => '0'})
       check_for_errors(r)
       x_r = REXML::Document.new(r.body).elements.to_a('//recorddetail')
@@ -49,7 +49,7 @@ module ZohoApi
 
     def attach_file(module_name, record_id, file_path, file_name)
       mime_type = (MIME::Types.type_for(file_path)[0] || MIME::Types['application/octet-stream'][0])
-      url_path = create_url(module_name, "uploadFile?authtoken=#{@auth_token}&scope=crmapi&id=#{record_id}")
+      url_path = create_url(module_name, "uploadFile?authtoken=#{@auth_token}&scope=recruitapi&id=#{record_id}")
       url = URI.parse(create_url(module_name, url_path))
       io = UploadIO.new(file_path, mime_type, file_name)
       req = Net::HTTP::Post::Multipart.new url_path, 'content' => io
@@ -80,7 +80,7 @@ module ZohoApi
     end
 
     def create_url(module_name, api_call)
-      "https://crm.zoho.com/crm/private/xml/#{module_name}/#{api_call}"
+      "https://recruit.zoho.com/recruit/private/xml/#{module_name}/#{api_call}"
     end
 
     def delete_record(module_name, record_id)
@@ -98,7 +98,7 @@ module ZohoApi
     def post_action(module_name, record_id, action_type)
       r = self.class.post(create_url(module_name, action_type),
                           :query => {:newFormat => 1, :authtoken => @auth_token,
-                                     :scope => 'crmapi', :id => record_id},
+                                     :scope => 'recruitapi', :id => record_id},
                           :headers => {'Content-length' => '0'})
       raise('Adding contact failed', RuntimeError, r.response.body.to_s) unless r.response.code == '200'
       check_for_errors(r)
@@ -131,7 +131,7 @@ module ZohoApi
         query: {
           newFormat: 1,
           authtoken: @auth_token,
-          scope: 'crmapi',
+          scope: 'recruitapi',
           parentModule: parent_module,
           id: parent_record_id
         }
@@ -146,12 +146,12 @@ module ZohoApi
 
     def download_file(parent_module, attachment_id)
       self.class.get(create_url("#{parent_module}", 'downloadFile'),
-        :query => {:authtoken => @auth_token, :scope => 'crmapi', :id => attachment_id})
+        :query => {:authtoken => @auth_token, :scope => 'recruitapi', :id => attachment_id})
     end
 
     def some(module_name, index = 1, number_of_records = nil, sort_column = :id, sort_order = :asc, last_modified_time = nil)
       r = self.class.get(create_url(module_name, 'getRecords'),
-                         :query => {:newFormat => 2, :authtoken => @auth_token, :scope => 'crmapi',
+                         :query => {:newFormat => 2, :authtoken => @auth_token, :scope => 'recruitapi',
                                     :sortColumnString => sort_column, :sortOrderString => sort_order,
                                     :lastModifiedTime => last_modified_time,
                                     :fromIndex => index, :toIndex => index + (number_of_records || NUMBER_OF_RECORDS_TO_GET) - 1})
@@ -170,7 +170,7 @@ module ZohoApi
       r = self.class.post(create_url("#{parent_module}", 'updateRelatedRecords'),
                           :query => {:newFormat => 1,
                                      :id => parent_record_id,
-                                     :authtoken => @auth_token, :scope => 'crmapi',
+                                     :authtoken => @auth_token, :scope => 'recruitapi',
                                      :relatedModule => related_module_fields[:related_module],
                                      :xmlData => x, :wfTrigger => 'true'},
                           :headers => {'Content-length' => '0'})
@@ -185,7 +185,7 @@ module ZohoApi
       fields_values_hash.each_pair { |k, v| add_field(row, k, v, module_name) }
       r = self.class.post(create_url(module_name, 'updateRecords'),
                           :query => {:newFormat => 1, :authtoken => @auth_token,
-                                     :scope => 'crmapi', :id => id,
+                                     :scope => 'recruitapi', :id => id,
                                      :xmlData => x, :wfTrigger => 'true'},
                           :headers => {'Content-length' => '0'})
       check_for_errors(r)
@@ -196,7 +196,7 @@ module ZohoApi
     def users(user_type = 'AllUsers')
       return @@users unless @@users == [] || user_type == 'Refresh'
       r = self.class.get(create_url('Users', 'getUsers'),
-                         :query => {:newFormat => 1, :authtoken => @auth_token, :scope => 'crmapi',
+                         :query => {:newFormat => 1, :authtoken => @auth_token, :scope => 'recruitapi',
                                     :type => 'AllUsers'})
       check_for_errors(r)
       result = extract_users_from_xml_response(r)

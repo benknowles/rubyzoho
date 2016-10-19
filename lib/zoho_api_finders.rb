@@ -13,7 +13,7 @@ module ZohoApiFinders
     field = sc_field.rindex('id') ? sc_field.downcase : sc_field
     search_condition = "(#{field}:#{value})"
     r = self.class.get(create_url("#{module_name}", 'searchRecords'),
-                       :query => { :newFormat => 1, :authtoken => @auth_token, :scope => 'crmapi',
+                       :query => { :newFormat => 1, :authtoken => @auth_token, :scope => 'recruitapi',
                                    :selectColumns => 'All', :criteria => search_condition,
                                    :fromIndex => 1, :toIndex => NUMBER_OF_RECORDS_TO_GET })
     check_for_errors(r)
@@ -23,7 +23,7 @@ module ZohoApiFinders
 
   def find_record_by_id(module_name, id)
     r = self.class.get(create_url("#{module_name}", 'getRecordById'),
-                       :query => { :newFormat => 1, :authtoken => @auth_token, :scope => 'crmapi',
+                       :query => { :newFormat => 1, :authtoken => @auth_token, :scope => 'recruitapi',
                                    :selectColumns => 'All', :id => id })
     raise(RuntimeError, 'Bad query', "#{module_name} #{id}") unless r.body.index('<error>').nil?
     check_for_errors(r)
@@ -35,7 +35,7 @@ module ZohoApiFinders
     raise(RuntimeError, "[RubyZoho] Not a valid query field #{sc_field} for module #{module_name}") unless valid_related?(module_name, sc_field)
     field = sc_field.downcase
     r = self.class.get(create_url("#{module_name}", 'getSearchRecordsByPDC'),
-                       :query => { :newFormat => 1, :authtoken => @auth_token, :scope => 'crmapi',
+                       :query => { :newFormat => 1, :authtoken => @auth_token, :scope => 'recruitapi',
                                    :selectColumns => 'All', :version => 2, :searchColumn => field,
                                    :searchValue => value,
                                    :fromIndex => from_index, :toIndex => to_index })
