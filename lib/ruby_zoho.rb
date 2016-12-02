@@ -25,7 +25,7 @@ module RubyZoho
     self.configuration ||= Configuration.new
     yield(configuration) if block_given?
     self.configuration.crm_modules ||= []
-    self.configuration.crm_modules = %w[Accounts Calls Contacts Events Leads Potentials Tasks].concat(
+    self.configuration.crm_modules = %w[Accounts Calls Contacts Events Potentials Tasks].concat(
         self.configuration.crm_modules).uniq
     self.configuration.api = init_api(self.configuration.api_key,
                                       self.configuration.crm_modules,
