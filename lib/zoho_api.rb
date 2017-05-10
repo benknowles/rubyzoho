@@ -38,7 +38,7 @@ module ZohoApi
       row = element.add_element 'row', {'no' => '1'}
       fields_values_hash.each_pair { |k, v| add_field(row, k, v, module_name) }
       r = self.class.post(create_url(module_name, 'insertRecords'),
-                          :query => {:newFormat => 1, :authtoken => @auth_token,
+                          :query => {:newFormat => 1, :authtoken => @auth_token, :version => 2,
                                      :scope => 'crmapi', :xmlData => x, :wfTrigger => 'true'},
                           :headers => {'Content-length' => '0'})
       check_for_errors(r)
