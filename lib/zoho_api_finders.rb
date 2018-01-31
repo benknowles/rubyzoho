@@ -23,7 +23,7 @@ module ZohoApiFinders
 
   def find_record_by_id(module_name, id)
     r = self.class.get(create_url("#{module_name}", 'getRecordById'),
-                       :query => { :newFormat => 1, :authtoken => @auth_token, :scope => 'crmapi',
+                       :query => { :newFormat => 2, :authtoken => @auth_token, :scope => 'crmapi',
                                    :selectColumns => 'All', :id => id })
     raise(RuntimeError, 'Bad query', "#{module_name} #{id}") unless r.body.index('<error>').nil?
     check_for_errors(r)
